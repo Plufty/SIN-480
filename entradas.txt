@@ -1,0 +1,45 @@
+26 3 3 11
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+CaminhaoEntrada1	0
+CaminhaoEntrada2	1
+CaminhaoEntrada3  2
+CaminhaoSaida1
+CaminhaoSaida2
+CaminhaoSaida3
+Cliente		0.00 0.0 00.00 00 00 0000
+Smartphone		1.25 2.5 00.20 10 10 0300
+Smartwatch		1.00 2.0 00.10 10 05 0400
+Capinha		1.00 2.0 00.05 20 01 5000
+Controle		1.00 2.0 00.20 20 02 0500
+VideoGame		2.00 4.0 05.00 10 05 1500
+Televisao		2.50 5.0 20.00 10 06 1000
+Headset		1.25 2.5 00.40 20 05 1000
+Notebook		2.25 4.5 06.00 10 10 0350
+MouseGamer		1.00 2.0 00.10 05 04 1500
+Teclado		1.25 2.5 01.50 05 04 1500
+3 3 3 3 500.0 140703128616957LL
