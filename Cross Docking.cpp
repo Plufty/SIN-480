@@ -11,6 +11,22 @@ typedef IloArray<IloNumVarArray> IloNumVarMatrix;
 typedef IloArray<IloNumVarMatrix> IloNumVar3Matrix;
 typedef IloArray<IloNumVar3Matrix> IloNumVar4Matrix;
 
+int tamanho(int arr[])//Função para definir o tamanho de um array
+{
+	return sizeof arr / sizeof arr[0];
+}
+
+int maior(int a, int b)//Função para determinar o maior dentre 2 números
+{
+	if (a > b)
+	{
+		return a;
+	}
+	else
+	{
+		return b;
+	}
+}
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -28,12 +44,14 @@ int main(int argc, char* argv[])
 
 	char** nomeCaminhaoJ1;//Nome dos caminhões do estágio 1
 	int* r;			//data de início por caminhão do estágio 1	
-	int* A;			//é subconjunto de P, porém se dá por J1;
-	float p1 = 0;	//tempo de processamento por j1. Na prática é o somatório por produto  pertencente a A do tempo de descarregamento
+	int** A;			//é subconjunto de P, porém se dá por J1
+	int** nA;			//numero de produtos carregados em A
+	float* p1;	//tempo de processamento por j1. Na prática é o somatório por produto  pertencente a A do tempo de descarregamento
 
 	char** nomeCaminhaoJ2;//Nome dos caminhões do estágio 2
-	int* B;			//é subconjunto de P, porém se dá por j2;
-	float p2 = 0;	//tempo de processamento por j2. Na prática é o somatório por produto  pertencente a B do tempo de carregamento
+	int** B;			//é subconjunto de P, porém se dá por j2
+	int** nB;			//numero de produtos carregados em B
+	float* p2;	//tempo de processamento por j2. Na prática é o somatório por produto  pertencente a B do tempo de carregamento
 
 	char** nomeProduto; //nome do produto
 	float* pd;		//Tempo de descarregamento por produto
@@ -42,7 +60,7 @@ int main(int argc, char* argv[])
 	float* s;		//Peso por produto
 	int* w;			//Importância por produto
 	int* n;			//numero de produtos por produto
-	float** dc;		//tempo de viagem por client i, j. Em que i,j pertencem ao conjunto P União com 0
+	int** dc;		//tempo de viagem por client i, j. Em que i,j pertencem ao conjunto P União com 0
 
 	float ht;		// Horizonte de tempo, na prática é o somatório por produto de tempo de carregamento+tempo de descarregamento
 	int m1;			//Número de docas no estágio 1
@@ -82,8 +100,18 @@ int main(int argc, char* argv[])
 	{
 		nomeCaminhaoJ1[j1] = new char[51];
 	}
-	A = new int[J1];
+	A = new int*[J1];
+	for (int j1 = 0; j1 < J1; j1++)
+	{
+		A[j1] = new int[P];
+	}
+	nA = new int* [J1];
+	for (int j1 = 0; j1 < J1; j1++)
+	{
+		nA[j1] = new int[P];
+	}
 	r = new int[J1];
+	p1 = new float[J1];
 
 	//por J2
 	nomeCaminhaoJ2 = new char*[J2];
@@ -91,7 +119,17 @@ int main(int argc, char* argv[])
 	{
 		nomeCaminhaoJ2[j2] = new char[51];
 	}
-	B = new int[J2];
+	B = new int*[J2];
+	for (int j2 = 0; j2 < J2; j2++)
+	{
+		B[j2] = new int[P];
+	}
+	nB = new int*[J2];
+	for (int j2 = 0; j2 < J2; j2++)
+	{
+		nB[j2] = new int[P];
+	}
+	p2 = new float[J2];
 
 	//Por produto
 	nomeProduto = new char*[P];
@@ -105,13 +143,14 @@ int main(int argc, char* argv[])
 	s = new float[P];
 	w = new int[P];
 	n = new int[P];
-	dc = new float*[P];
+	dc = new int*[P];
 	for (int i = 0; i < P; i++)
 	{
-		dc[i] = new float[P];
+		dc[i] = new int[P];
 	}
 
 	// Após a declaração dos tamanhos dos dados de entrada, realizando a leitura
+
 
 	// Conjunto T
 	for (int t = 0; t < T; t++)
@@ -120,20 +159,31 @@ int main(int argc, char* argv[])
 	}
 
 	// Conjunto J1
+
 	for (int j1 = 0; j1 < J1; j1++)
 	{
 		fscanf(fp, "%s", nomeCaminhaoJ1[j1]);
 		fscanf(fp, "%d", &r[j1]);
+		for (int p = 1; p < P; p++)
+		{
+			fscanf(fp, "%d", &nA[j1][p]); //Lendo Número de produtos carregados em A
+		}
 	}
 
+
 	// Conjunto J2
+
 	for (int j2 = 0; j2 < J2; j2++)
 	{
 		fscanf(fp, "%s", nomeCaminhaoJ2[j2]);
+		for (int p = 1; p < P; p++)
+		{
+			fscanf(fp, "%d", &nB[j2][p]); //Lendo Número de produtos carregados em B
+		}
 	}
 
 	// Conjunto P
-	for (int p = 0; p < P; p++) //fscanf(fp, "%f", dc[p]); //Variável comentada por não saber como lidar com a mesma
+	for (int p = 0; p < P; p++)
 	{
 		fscanf(fp, "%s", nomeProduto[p]);
 		fscanf(fp, "%f", &pd[p]); //Lendo tempo de descarregamento
@@ -143,6 +193,13 @@ int main(int argc, char* argv[])
 		fscanf(fp, "%d", &w[p]); //Lendo importância
 		fscanf(fp, "%d", &n[p]); //Lendo Número de produtos	
 	}
+	for (int i = 0; i < P; i++)
+	{
+		for (int j = 0; j < P; j++)
+		{
+			fscanf(fp, "%d", &dc[i][j]);//Lendo a matriz de tempo de viagem do cliente i ao j
+		}
+	}
 
 	//Variáveis independentes de conjuntos
 	
@@ -150,13 +207,19 @@ int main(int argc, char* argv[])
 	{
 		ht = pc[p] + pd[p];
 	}
-	for (int p = 1; p < sizeof(B); p++)
+	for (int j1 = 0; j1 < J1; j1++)
 	{
-		p1 += pd[p];
+		for (int p = 1; p < sizeof(B); p++)
+		{
+			p1[j1] += pd[p];
+		}
 	}
-	for (int p = 1; p < sizeof(B); p++)
+	for (int j2 = 0; j2 < J2; j2++)
 	{
-		p2 += pc[p];
+		for (int p = 1; p < sizeof(B); p++)
+		{
+			p2[j2] += pc[p];
+		}
 	}
 	fscanf(fp, "%d", &m1);
 	fscanf(fp, "%d", &m2);
@@ -184,7 +247,13 @@ int main(int argc, char* argv[])
 	printf("Caminhoes do primeiro estagio: \n");
 	for (int j1 = 0; j1 < J1; j1++)
 	{
-		printf("%s \t %d \n", nomeCaminhaoJ1[j1], r[j1]);
+		printf("%s \t %.2f \t  %d \n", nomeCaminhaoJ1[j1], p1[j1], r[j1]);
+		printf("\nProdutos carregados no caminhao %s \t \n", nomeCaminhaoJ1[j1]);
+		for (int p = 1; p < P; p++)
+		{
+			printf("%s \t %d \n", nomeProduto[p], nA[j1][p]);
+		}
+		putchar('\n');
 	}
 
 	printf("\n");
@@ -192,22 +261,36 @@ int main(int argc, char* argv[])
 	printf("Caminhoes do segundo estagio: \n");
 	for (int j2 = 0; j2 < J2; j2++)
 	{
-		printf("%s \t \n", nomeCaminhaoJ2[j2]);
+		printf("%s \t %.2f \n", nomeCaminhaoJ2[j2], p2[j2]);
+		printf("\nProdutos carregados no caminhao %s \t \n", nomeCaminhaoJ2[j2]);
+		for (int p = 1; p < P; p++) 
+		{
+			printf("%s \t %d \n", nomeProduto[p], nB[j2][p]);
+		}
+		putchar('\n');
 	}
 
 	printf("\n");
 
 	printf("Produtos: \n");
-	for (int p = 0; p < P; p++) //fscanf(fp, "%f", dc[p]); //Variável comentada por não saber como lidar com a mesma
+	for (int p = 1; p < P; p++) 
 	{
 		printf("%s \t %.2f \t %.2f \t %d \t %.2f \t %d \t %d \n", nomeProduto[p], pd[p], pc[p], d[p], s[p], w[p], n[p]);
 	}
 
 	printf("\n");
 
+	printf("Matriz dos tempos de viagem do cliente i ao j:\n");
+	for (int i = 0; i < P; i++)
+	{
+		for (int p = 0; p < P; p++)
+		{
+			printf("%d ", dc[i][p]);
+		}
+		putchar('\n');
+	}
+
 	printf("Horizonte de tempo: %.2f \n", ht);
-	printf("Tempo de processamento de J1: %.2f \n", p1);
-	printf("Tempo de processamento de J2: %.2f \n", p2);
 	printf("Numero de Caminhoes do primeiro estagio: %d \n", m1);
 	printf("Numero de Caminhoes do segundo estagio: %d \n", m2);
 	printf("Numero de docas do primeiro estagio: %d \n", n1);
@@ -287,7 +370,7 @@ int main(int argc, char* argv[])
 	IloNumVarMatrix x(env, J1);
 	for (int j1 = 0; j1 < J1; j1++)
 	{
-		x[j1] = IloNumVarArray(env, T, 0, 1, ILOINT); // Variável Binária
+		x[j1] = IloNumVarArray(env, T, 0, 1, ILOBOOL); // Variável Binária
 	}
 	// adicionar as variáveis no modelo
 	for (int j1 = 0; j1 < J1; j1++)
@@ -306,7 +389,7 @@ int main(int argc, char* argv[])
 	IloNumVarMatrix y(env, J2);
 	for (int j2 = 0; j2 < J2; j2++)
 	{
-		y[j2] = IloNumVarArray(env, T, 0, 1, ILOINT);// Variável binária
+		y[j2] = IloNumVarArray(env, T, 0, 1, ILOBOOL);// Variável binária
 	}
 	// adicionar as variáveis no modelo
 	for (int j2 = 0; j2 < J2; j2++)
@@ -349,9 +432,25 @@ int main(int argc, char* argv[])
 		rotas[j2] = IloNumVarMatrix(env, P);
 		for (int i = 0; i < P; i++)
 		{
-			rotas[j2][i] = IloNumVarArray(env, P, 0, 1, ILOINT); // Variável Binária
+			rotas[j2][i] = IloNumVarArray(env, P, 0, 1, ILOBOOL); // Variável Binária
 		}
 	}
+	// adicionar as variáveis no modelo
+	for (int j2 = 0; j2 < J2; j2++)
+	{
+		for (int i = 0; i < P; i++) // P se inicia em 0 em caso de P representar clientes
+		{
+			for (int K = 0; K < P; K++)
+			{
+				stringstream var;
+				var << "rotas[" << j2 << "][" << i << "][" << K << "]";
+				rotas[j2][i][K].setName(var.str().c_str());
+				modelo.add(rotas[j2][i][K]);
+			}
+		}
+	}
+
+
 
 
 
@@ -369,6 +468,10 @@ int main(int argc, char* argv[])
 	modelo.add(IloMinimize(env, fo));
 
 
+
+
+
+
 	// DECLARAÇÃO DAS RESTRIÇÕES DO PROBLEMA
 
 	// declarando a restrição
@@ -377,12 +480,12 @@ int main(int argc, char* argv[])
 	//Restrição(1)
 	//Essa restrição garante que os caminhões do primeiro estágio só podem ser alocados após chegarem ao centro de distribuição.
 
-	for (int j1 =0; j1 < J1; j1++)//para todo
+	for (int j1 = 0; j1 < J1; j1++)//para todo
 	{
 		IloExpr soma(env);
-		for (int t = 0; t < (T - p1);)
+		for (int t = 0; t < (ht - p1[j1]); t++)
 		{
-			soma += t * x[j1][t];
+			soma += tempo[t] * x[j1][t];
 		}
 		//declarar a restição
 		IloRange rest_um(env, r[j1], soma, IloInfinity);
@@ -399,9 +502,9 @@ int main(int argc, char* argv[])
 	for (int j1 = 0; j1 < J1; j1++)//para todo
 	{
 		IloExpr soma(env);
-		for (int t = 0; t < (T - p1);)
+		for (int t = 0; t < (ht - p1[j1]); t++)
 		{
-			soma += t * x[j1][t];
+			soma += tempo[t] * x[j1][t];
 		}
 		//declarar a restição
 		IloRange rest_dois(env, 1, soma, 1);
@@ -418,9 +521,9 @@ int main(int argc, char* argv[])
 	for (int j2 = 0; j2 < J2; j2++)//para todo
 	{
 		IloExpr soma(env);
-		for (int t = 0; t < (T - p2);)
+		for (int t = 0; t < (ht - p2[j2]); t++)
 		{
-			soma += t * y[j2][t];
+			soma += tempo[t] * y[j2][t];
 		}
 		//declarar a restição
 		IloRange rest_tres(env, 1, soma, 1);
@@ -439,7 +542,7 @@ int main(int argc, char* argv[])
 		IloExpr soma(env);
 		for (int j1 = 0; j1 < J1; j1++)
 		{
-			for (int s = fmax(0, (t - p1 + 1)); s < t; s++)
+			for (int s = maior(0, (t - p1[j1] + 1)); s < t; s++)
 			{
 				soma += x[j1][s];
 			}
@@ -463,7 +566,7 @@ int main(int argc, char* argv[])
 		IloExpr soma(env);
 		for (int j2 = 0; j2 < J2; j2++)
 		{
-			for (int s = fmax(0, (t - p2 + 1)); s < t; s++)
+			for (int s = maior(0, (t - p2[j2] + 1)); s < t; s++)
 			{
 				soma += y[j2][s];
 			}
@@ -483,15 +586,15 @@ int main(int argc, char* argv[])
 	
 	for (int j1 = 0; j1 < J1; j1++)//para todo
 	{
-		for (int p = 1; p < A[j1]; p++)//para todo
+		for (int a = 1; a < tamanho(A[j1]); a++)//para todo
 		{
 			IloExpr soma(env);
 			for (int t = 0; t < T; t++)
 			{
-				soma += (t + p1)*x[j1][t];
+				soma += (tempo[t] + p1[j1])*x[j1][t];
 			}
 			//declarar a restrição
-			IloRange rest_seis(env, 0, rd[p]-soma, IloInfinity);
+			IloRange rest_seis(env, 0, rd[a]-soma, IloInfinity);
 			//nomeando a restrição
 			stringstream rest;
 			rest << "seis: ";
@@ -505,15 +608,15 @@ int main(int argc, char* argv[])
 	//Essa restrição garante que os caminhões no segundo estágio só podem iniciar seu processamento 
 	for (int j2 = 0; j2 < J2; j2++)//para todo
 	{
-		for (int p = 1; p < B[j2]; p++)//para todo
+		for (int b = 1; b < tamanho(B[j2]); b++)//para todo
 		{
 			IloExpr soma(env);
-			for (int t = 0; t < (T-p2); t++)
+			for (int t = 0; t < (ht-p2[j2]); t++)
 			{
-				soma += t*y[j2][t];
+				soma += tempo[t]*y[j2][t];
 			}
 			//declarar a restrição
-			IloRange rest_sete(env, 0, soma-rd[p], IloInfinity);
+			IloRange rest_sete(env, 0, soma-rd[b], IloInfinity);
 			//nomeando a restrição
 			stringstream rest;
 			rest << "sete: ";
@@ -522,19 +625,18 @@ int main(int argc, char* argv[])
 			modelo.add(rest_sete);
 		}
 	}
-
 	//Restrição(8)
 	//Essa restrição garante que a data de conclusão de um caminhão do segundo estágio é maior ou igual a data de início do mesmo, mais o tempo de processamento de um caminhão j no segundo estágio. 
 	for (int j2 = 0; j2 < J2; j2++)//para todo
 	{
-		for (int p = 0; p < (sizeof(B)/sizeof(B[0])); p++)//para todo
+		for (int b = 1; b < tamanho(B[j2]); b++)//para todo
 		{
 			IloExpr soma(env);
-			for (int t = 0; t < (T - p2); t++)
+			for (int t = 0; t < (ht - p2[j2]); t++)
 			{
-				soma += t*y[j2][t];
+				soma += tempo[t]*y[j2][t];
 			}
-			soma += p2;
+			soma += p2[j2];
 			//declarar restrição
 			IloRange rest_oito(env, 0, C[j2]-soma, IloInfinity);
 			//nomeando a restrição
@@ -570,14 +672,14 @@ int main(int argc, char* argv[])
 	//Ambas as restrições 10 e 11 juntas garantem que todos os clientes de cada caminhão serão visitados uma única vez.
 	for (int j2 = 0; j2 < J2; j2++)//para todo
 	{
-		for (int p = 0; p < B[j2]; j2++)//para todo
+		for (int b = 1; b < tamanho(B[j2]); b++)//para todo
 		{
 			IloExpr soma(env);
 			for (int i = 0; i < P; i++)
 			{
-				if (p != i)
+				if (b != i)
 				{
-					soma += rotas[j2][i][p];
+					soma += rotas[j2][b][i];
 				}
 			}
 			//declarar restrição
@@ -596,10 +698,10 @@ int main(int argc, char* argv[])
 	//Ambas as restrições 10 e 11 juntas garantem que todos os clientes de cada caminhão serão visitados uma única vez.
 	for (int j2 = 0; j2 < J2; j2++)//para todo
 	{
-		for (int i = 0; i < B[j2]; j2++)//para todo
+		for (int i = 1; i < tamanho(B[j2]); i++)//para todo
 		{
 			IloExpr soma(env);
-			for (int p = 0; p < P; i++)
+			for (int p = 0; p < P; p++)
 			{
 				if (p != i)
 				{
@@ -656,20 +758,19 @@ int main(int argc, char* argv[])
 	}
 
 	//Restrição(14)
-	//A restrição (14) garante que o tempo de chegada no próximo cliente deve ser maior do que o tempo de chegada ao cliente anterior somado ao tempo de viagem até o cliente atual
-/* Essa restrição está comentada pois em nosso modelo não é informado o conjunto N, assim não temos como colocá-la em prática
+	
 	for (int j2 = 0; j2 < J2; j2++)//para todo
 	{
-		for (int n; n < N; n++)//para todo
+		for (int n=0; n < P; n++)//para todo
 		{
-			for (int i; i < N; i++)
+			for (int i=0; i < P; i++)
 			{
 				IloExpr soma(env);
 				if (n != 0)
 				{
 					soma = tempos[j2][i] + dc[i][n] - m*(1 - rotas[j2][i][n]);
 				}
-				IloRange rest_quatorze(env, -IloInfinity, soma, tempos[j2][n]);
+				IloRange rest_quatorze(env, 0, tempos[j2][n]-soma, IloInfinity);
 				//nomeando a restrição
 				stringstream rest;
 				rest << "quatorze: ";
@@ -680,7 +781,11 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-*/
+
+
+
+
+
 
 
 // RESOLVENDO O MODELO
@@ -701,7 +806,7 @@ int main(int argc, char* argv[])
 		float variavel2 = cplex.getValue(atraso[p]);
 		float variavel4 = cplex.getValue(tentrega[p]);
 		printf("********\n");
-		printf("Tempo em que o produto %s termina de ser descarregado no estágio 1: %f\n", nomeProduto[p], variavel1);
+		printf("Tempo em que o produto %s termina de ser descarregado no estagio 1: %f\n", nomeProduto[p], variavel1);
 		printf("********\n");
 		printf("Tempo de atraso do produto %s: %f\n", nomeProduto[p], variavel2);
 		printf("********\n");
@@ -713,7 +818,7 @@ int main(int argc, char* argv[])
 
 		float variavel = cplex.getValue(C[j2]);
 		printf("********\n");
-		printf("Tempo em que o caminhao %s termina de ser carregado no estágio 2: %f\n", nomeCaminhaoJ2[j2], variavel);
+		printf("Tempo em que o caminhao %s termina de ser carregado no estagio 2: %f\n", nomeCaminhaoJ2[j2], variavel);
 	}
 
 	for (int j1 = 0; j1 < J1; j1++)//X
