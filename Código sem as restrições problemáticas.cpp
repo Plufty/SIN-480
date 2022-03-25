@@ -465,7 +465,7 @@ int main(int argc, char* argv[])
 	// declarando a restrição
 	// IloRange parametros: ambiente, valor min, expressão, valor maximo
 
-
+	/*
 	//Restrição(1)
 	//Essa restrição garante que os caminhões do primeiro estágio só podem ser alocados após chegarem ao centro de distribuição.
 
@@ -505,7 +505,7 @@ int main(int argc, char* argv[])
 		//adicionar ao modelo
 		modelo.add(rest_dois);
 	}
-
+	*/
 	
 	//Restrição(3)
 	//Essa restrição garante que cada caminhão do segundo estágio só seja alocado em uma data do horizonte de tempo
